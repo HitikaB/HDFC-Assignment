@@ -75,6 +75,15 @@ resource "aws_lb_listener" "https-alb-listner" {
   protocol          = "HTTPS"
 
   default_action {
+    type = "authenticate-cognito"
+
+    authenticate_cognito {
+      user_pool_arn       = var.pool_arn
+      user_pool_client_id = var.client_id
+      user_pool_domain    = var.pool_domain
+    }
+  }
+  default_action {
     type = "fixed-response"
 
     fixed_response {
@@ -90,20 +99,19 @@ resource "aws_lb_listener_rule" "frontend-alb-host-rule" {
   priority     = 1
 
   action {
+    type = "authenticate-cognito"
+
+    authenticate_cognito {
+      user_pool_arn       = var.pool_arn
+      user_pool_client_id = var.client_id
+      user_pool_domain    = var.pool_domain
+    }
+  }
+
+  action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.frontend-target-group.arn
   }
-
-  condition {
-    host_header {
-      values = ["livev3.arktravelgroups.com"]
-    }
-  }
-}
-
-resource "aws_lb_listener_rule" "frontend-alb-host-rule2" {
-  listener_arn = aws_lb_listener.https-alb-listner.arn
-  priority     = 2
 
   action {
     type             = "forward"
