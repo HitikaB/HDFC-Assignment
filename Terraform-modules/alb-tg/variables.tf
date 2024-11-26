@@ -21,3 +21,18 @@ variable "env" {
 variable "arn" {
   description = "Certificate ARN"
 }
+
+variable "pool_arn" {
+  default = "arn:aws:cognito-idp:us-east-1:339712975105:userpool/us-east-1_viVLTmZwb"
+  description = "Userpool ARN"
+}
+
+variable "pool_domain" {
+  default = "us-east-1vivltmzwb"
+  description = "Cognito Userpool domain"
+}
+
+variable "client_id" {
+  default = "7de5bg9nv045fverog6unsu5t8"
+  description = "App client ID"
+}
