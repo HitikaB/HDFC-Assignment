@@ -22,6 +22,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@0e613a0980cbf65ed5b322eb7a1e075d28913a83
@@ -47,6 +53,16 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Deploy to ECS
+      - name: Create CodeDeploy Deployment
         run: |
-          aws deploy update-deployment-group --application-name $APP_DEPLOY_NAME --current-deployment-group-name $CODE_DEPLOY_NAME --deployment-config-name CodeDeployDefault.ECSAllAtOnce 
+          echo "[*] Deploy Start"
+          ls
+          aws s3 cp appspec.yml s3://terraform-tfstate-hdfc/appspec.yaml
+          echo "[*] Upload appspec.yaml to S3 Done"
+          sleep 3
+          aws deploy \
+          create-deployment \
+          --application-name $APP_DEPLOY_NAME \
+          --deployment-group-name $CODE_DEPLOY_NAME \
+          --s3-location bucket=terraform-tfstate-hdfc,bundleType=yaml,key=appspec.yaml
+          echo "[*] Deploy Done"
